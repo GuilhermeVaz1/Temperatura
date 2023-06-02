@@ -28,7 +28,7 @@ float averageVoltage = 0,tdsValue = 0,temperature;
 float resistor1 = 170;
 float resistor2 = 330;
 
-float calibration = 16.7; //change this value to calibrate
+float calibration = 14.7; //change this value to calibrate
 const int analogInPin = A0;
 int sensorValue = 0;
 unsigned long int avgValue;
@@ -107,10 +107,10 @@ void setup()
 
 void loop() 
 {
+  Serial.print("Server begin at IP ");
+  Serial.println(WiFi.localIP());
   temperature = sensors.getTempC(insideThermometer);
-  Serial.println("Sensor DS18B20");
   sensors.requestTemperatures();
-  printTemperature(insideThermometer);
   WiFiClient myclient  = server.available();    // server.available return to client object, it need to store into a variable myclient
  if(!myclient)  //  if there is no client then it should return back
  return;
@@ -175,15 +175,22 @@ void loop()
   // tdsValue=(133.42*compensationVolatge*compensationVolatge*compensationVolatge - 255.86*compensationVolatge*compensationVolatge + 857.39*compensationVolatge)*0.5; //convert voltage value to tds value
   // }
   // digitalWrite(D1, LOW);
-  String response ="HTTP/1.1 200 OK\r\n Content-type:text/html\r\n\r\n<!DOCTYPE HTML><HTML><BODY>Temperature is ";
+  String response ="HTTP/1.1 200 OK\r\n Content-type:text/html\r\n\r\n<!DOCTYPE HTML><HTML><BODY>Temperatura: ";
   response+= temperature;
-  response += " º C<br>";
-  response+= "pH is ";
+  response += "  C<br>";
+  response+= "pH: ";
   response+= phValue;
-  response+= "<br>TDS value is ";
+  response+= "<br>Corpos totais dissolvidos: ";
   response+= tdsValue;
   response+= " ppm<br>";
-  response+= "Agua boa para consumo";
+  if(tdsValue >= 1000.0)
+    response+= "Agua impropria para consumo<br>";
+  else
+    response+= "Agua boa para consumo<br>";
+  if(phValue >= 9.0)
+    response+= "Agua alcalina (pH >= 9.0)<br>";
+  else if(phValue <= 5.0)
+    response+= "Agua acida (pH <= 5.0)<br>";
   response+= "</BODY></HTML>";
   myclient.print(response);
   delay(10);  
